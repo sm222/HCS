@@ -9,13 +9,7 @@ const int portsList[5] = {
   0 // safety
 };
 
-typedef struct s_networkData {
-  int  port;
-  fd_set rs, ws, as;
-  int          nuberUser;
-  int          sockfd;
-  unsigned int idTotal;
-} t_networkData;
+
 
 int try_bind(t_setting* setting, int& i, int sockfd, struct sockaddr_in* servaddr) {
   (void)setting;
@@ -36,7 +30,7 @@ int try_bind(t_setting* setting, int& i, int sockfd, struct sockaddr_in* servadd
   return 1;
 }
 
-# include <list>
+
 
 void send_to_user(std::string msg, t_user& user) {
   send(user.fd, msg.c_str(), msg.length(), 0);
@@ -46,9 +40,9 @@ void send_to_user(std::string msg, int fd) {
   send(fd, msg.c_str(), msg.length(), 0);
 }
 
-void send_message(t_networkData& data, t_user& from, std::list<t_user>& userData) {
+void send_message(t_networkData& data, t_user& from, userList& userData) {
   (void)data;
-  std::list<t_user>::iterator it = userData.begin();
+  userListIt it = userData.begin();
   for (; it != userData.end(); it++) {
     if (it->status != status_server && from.fd != it->fd)
       send(it->fd, from.msg.c_str(), from.msg.length(), 0);
@@ -68,12 +62,15 @@ int add_user(int fd, t_networkData& data, std::list<t_user>& userData) {
   return 1;
 }
 
-void remove_user(int fd, t_networkData& data, std::list<t_user>& userData) {
-  (void)userData;
+void remove_user(int fd, t_networkData& data, userList& userData, userListIt& it) {
   FD_CLR(fd, &data.as);
+  userData.erase(it);
+  data.nuberUser--;
   close(fd);
 }
 
+#include "parsing.hpp"
+#include "signal.hpp"
 
 int network_loop(t_networkData& data, struct sockaddr_in& servaddr) {
   std::list<t_user> userData;
@@ -85,7 +82,8 @@ int network_loop(t_networkData& data, struct sockaddr_in& servaddr) {
     .id = 0,
   };
   userData.push_front(server);
-  while (1) {
+  parsing passer(data, userData);
+  while (!get_stop_sig(false)) {
     data.rs = data.ws = data.as;
     if (select(data.nuberUser + 1, &data.rs, &data.ws, NULL, NULL) < 0) {
       perror("select");
@@ -112,16 +110,15 @@ int network_loop(t_networkData& data, struct sockaddr_in& servaddr) {
           fprintf(stderr, ">%s", leaveB);
           it->msg = leaveB;
           send_message(data, *it, userData);
-          remove_user(it->fd, data, userData);
-          userData.erase(it);
+          remove_user(it->fd, data, userData, it);
           it = userData.begin();
         }
         else {
           buff[rb] = 0;
           it->msg += buff;
-          // parsing
-          if (it->msg.length() > 0 && it->msg.at(it->msg.length() - 1) == '\n') {
-            send_message(data, *it, userData);
+          if (it->msg.length() > 0 && it->msg.back() == '\n') {
+            if (passer.read(*it))
+              it = userData.begin();
             it->msg.clear();
           }
         }
@@ -131,33 +128,29 @@ int network_loop(t_networkData& data, struct sockaddr_in& servaddr) {
   return 1;
 }
 
-int init(t_setting* setting) {
-  struct sockaddr_in servaddr;
-  bzero(&servaddr, sizeof(servaddr));
+int init(t_setting* setting, t_networkData& data) {
+  bzero(&data.servaddr, sizeof(data.servaddr));
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
   if (sockfd < 0) {
     perror("socket");
     return 1;
   }
-  servaddr.sin_family = AF_INET;
-  servaddr.sin_addr.s_addr = INADDR_ANY;
+  data.servaddr.sin_family = AF_INET;
+  data.servaddr.sin_addr.s_addr = INADDR_ANY;
   int i = 0;
-  if (try_bind(setting, i, sockfd, &servaddr)) {
+  if (try_bind(setting, i, sockfd, &data.servaddr)) {
     return 1;
   }
   if (listen(sockfd, MAX_USER) < 0) {
     perror("listen");
     return 1;
   }
-  printf("okie\n");
-  t_networkData data;
+  print_sucsses(setting, "suscess: ready to run");
   data.nuberUser = sockfd;
   data.sockfd = sockfd;
   data.idTotal = 1;
-  printf("%d\n", sockfd);
   FD_ZERO(&data.as);
   FD_SET(sockfd, &data.as);
-  network_loop(data, servaddr);
   return 0;
 }
 

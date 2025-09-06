@@ -7,6 +7,7 @@ enum {
   status_server = 0,
   status_newUser,
   status_logingIn,
+  status_logingInUser, // get unic user and password
   status_valid,
   status_admin,
   status_superAdmin,

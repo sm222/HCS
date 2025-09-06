@@ -12,11 +12,28 @@
 
 # define MAX_USER 10
 
-int init(t_setting* setting);
+typedef struct s_networkData {
+  int  port;
+  fd_set rs, ws, as;
+  int          nuberUser;
+  int          sockfd;
+  unsigned int idTotal;
+  struct sockaddr_in servaddr;
+} t_networkData;
+
+int init(t_setting* setting, t_networkData& data);
+int network_loop(t_networkData& data, struct sockaddr_in& servaddr);
 
 void send_to_user(std::string msg, t_user& user);
 void send_to_user(std::string msg, int fd);
 
+
+# include <list>
+  typedef std::list<t_user> userList;
+  typedef userList::iterator userListIt;
+
+// add and remove
+void remove_user(int fd, t_networkData& data, userList& userData, userListIt& it);
 
 #endif
 

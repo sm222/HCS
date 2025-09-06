@@ -25,6 +25,30 @@ static int add_setting(t_setting* setting, char c, size_t i) {
   return 0;
 }
 
+#include <fstream>
+#include <sys/stat.h>
+
+inline bool is_file_here(const std::string& name) {
+  struct stat buffer;
+  return (stat(name.c_str(), &buffer) == 0);
+}
+
+# define FILE_NAME "data/.user"
+
+static bool open_user_file(t_setting* setting) {
+  if (!is_file_here(FILE_NAME)) {
+    print_warning(setting, "no user file... trying to make one");
+  }
+  std::ofstream user(FILE_NAME);
+  if (user.fail()) {
+    print_error(setting, "no file for user");
+    return false;
+  }
+  user.close();
+  print_sucsses(setting, "sucsess");
+  return true;
+}
+
 
 static int settup(t_setting* setting, int ac, const char* const* av) {
   int i = 1;
@@ -44,10 +68,9 @@ static int settup(t_setting* setting, int ac, const char* const* av) {
   return 0;
 }
 
+#include "signal.hpp"
 
 int main(int ac, const char* const* av) {
-  (void)ac;
-  (void)av;
   t_setting _setting = {
     .color = false,
     .verbose = false,
@@ -55,6 +78,12 @@ int main(int ac, const char* const* av) {
   };
   if (settup(&_setting, ac, av))
     return 1;
-  init(&_setting);
+  init_signal();
+  if (!open_user_file(&_setting))
+    return 1;
+  t_networkData data;
+  if (init(&_setting, data))
+    return 1;
+  network_loop(data, data.servaddr);
   return 0;
 }

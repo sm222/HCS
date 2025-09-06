@@ -39,6 +39,7 @@ typedef struct s_setting {
   bool   color;
   bool   verbose;
   bool   debug;
+  
 } t_setting;
 
 #endif
