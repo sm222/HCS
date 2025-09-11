@@ -84,6 +84,6 @@ int main(int ac, const char* const* av) {
   t_networkData data;
   if (init(&_setting, data))
     return 1;
-  network_loop(data, data.servaddr);
+  network_loop(data, data.servaddr, &_setting);
   return 0;
 }

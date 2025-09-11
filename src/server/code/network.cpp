@@ -1,5 +1,9 @@
 #include "network.hpp"
 #include "debug.hpp"
+#include <arpa/inet.h>
+#include "parsing.hpp"
+#include "signal.hpp"
+#include <string.h>
 
 const int portsList[5] = {
   8080,
@@ -8,7 +12,6 @@ const int portsList[5] = {
   4200,
   0 // safety
 };
-
 
 
 int try_bind(t_setting* setting, int& i, int sockfd, struct sockaddr_in* servaddr) {
@@ -31,14 +34,15 @@ int try_bind(t_setting* setting, int& i, int sockfd, struct sockaddr_in* servadd
 }
 
 
-
 void send_to_user(std::string msg, t_user& user) {
   send(user.fd, msg.c_str(), msg.length(), 0);
 }
 
+
 void send_to_user(std::string msg, int fd) {
   send(fd, msg.c_str(), msg.length(), 0);
 }
+
 
 void send_message(t_networkData& data, t_user& from, userList& userData) {
   (void)data;
@@ -49,17 +53,19 @@ void send_message(t_networkData& data, t_user& from, userList& userData) {
   }
 }
 
-int add_user(int fd, t_networkData& data, std::list<t_user>& userData) {
+t_user add_user(int fd, t_networkData& data, std::list<t_user>& userData) {
   FD_SET(fd, &data.as);
+  const char* addres = inet_ntoa(data.servaddr.sin_addr);
+  const size_t addres_len = strlen(addres);
   t_user newUser;
   newUser.fd = fd;
   newUser.status = status_newUser;
   newUser.id = ++data.idTotal;
+  memcpy(newUser.ip, addres, addres_len + 1);
   data.nuberUser++;
   userData.push_front(newUser);
   send_to_user("welcome: please register on the server\n", newUser);
-  fprintf(stderr, ">[%d]new user join \n", newUser.id);
-  return 1;
+  return userData.front();
 }
 
 void remove_user(int fd, t_networkData& data, userList& userData, userListIt& it) {
@@ -69,10 +75,7 @@ void remove_user(int fd, t_networkData& data, userList& userData, userListIt& it
   close(fd);
 }
 
-#include "parsing.hpp"
-#include "signal.hpp"
-
-int network_loop(t_networkData& data, struct sockaddr_in& servaddr) {
+int network_loop(t_networkData& data, struct sockaddr_in& servaddr, t_setting* setting) {
   std::list<t_user> userData;
   t_user server = {
     .fd = data.sockfd,
@@ -80,6 +83,7 @@ int network_loop(t_networkData& data, struct sockaddr_in& servaddr) {
     .msg = "",
     .name = "server",
     .id = 0,
+    .ip = "self",
   };
   userData.push_front(server);
   parsing passer(data, userData);
@@ -97,7 +101,8 @@ int network_loop(t_networkData& data, struct sockaddr_in& servaddr) {
         socklen_t addr_len = sizeof(servaddr);
         const int clId = accept(data.sockfd, (struct sockaddr *)&servaddr, &addr_len);
         if (clId >= 0) {
-          add_user(clId, data, userData);
+          const t_user& newUser = add_user(clId, data, userData);
+          print_notify(setting, "[id > %d|addr > %s]new user join", newUser.id, newUser.ip);
           break;
         }
       }
@@ -106,8 +111,8 @@ int network_loop(t_networkData& data, struct sockaddr_in& servaddr) {
         ssize_t rb = recv(it->fd, buff, 1000, 0);
         if (rb <= 0) {
           char leaveB[100];
-          snprintf(leaveB, 99, "[%d](%s):left\n", it->id, it->name.c_str());
-          fprintf(stderr, ">%s", leaveB);
+          snprintf(leaveB, 99, "[id > %d|addr > %s]%s:left\n", it->id, it->ip, it->name.c_str());
+          fprintf(stderr, "%s", leaveB);
           it->msg = leaveB;
           send_message(data, *it, userData);
           remove_user(it->fd, data, userData, it);

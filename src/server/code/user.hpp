@@ -22,6 +22,7 @@ typedef struct s_user {
   bool operator==(s_user& rhs) {
     return rhs.name == this->name;
   }
+  char          ip[30];
 } t_user;
 
 

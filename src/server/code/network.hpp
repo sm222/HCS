@@ -22,7 +22,7 @@ typedef struct s_networkData {
 } t_networkData;
 
 int init(t_setting* setting, t_networkData& data);
-int network_loop(t_networkData& data, struct sockaddr_in& servaddr);
+int network_loop(t_networkData& data, struct sockaddr_in& servaddr, t_setting* setting);
 
 void send_to_user(std::string msg, t_user& user);
 void send_to_user(std::string msg, int fd);

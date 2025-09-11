@@ -29,6 +29,7 @@ int channel::add(std::string name, t_user* user) {
   chan.usersNumber = user ? 1 : 0;
   if (user)
     chan.users.push_back(user);
+  channels.push_back(chan);
   return 0;
 }
 
@@ -45,6 +46,7 @@ int channel::join(t_user& user, std::string name) {
     }
   }
   channel_it->users.push_back(&user);
+  message(name, "new user join channel\n");
   /*
   * notify here
   */
@@ -73,6 +75,11 @@ int channel::message(std::string channel, std::string msg, t_user* from) {
   if (it == channels.end())
     return 2;
   std::vector<t_user*>::iterator user_it = it->users.begin();
+  t_message m;
+  SET_MESSAGE_TIME(m.time);
+  m.form = from;
+  m.txt = msg;
+  it->messages.push_back(m);
   for (; user_it != it->users.end(); user_it++) {
     send_to_user(msg, *(*user_it));
   }
@@ -86,4 +93,15 @@ std::vector<t_channelData>::iterator channel::_get(std::string name) {
       return it;
   }
   return channels.end();
+}
+
+# include <fcntl.h>
+
+int  channel::logMessage(std::string name) {
+  if (name.empty())
+    return 1;
+  
+  const int fd = open(name.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0644);
+  if (fd < 0)
+    return 2;
 }

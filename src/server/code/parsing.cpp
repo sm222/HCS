@@ -28,7 +28,7 @@ int parsing::kick(t_user& user, std::string mgs) {
 
 int parsing::valid_new_user(t_user& user) {
   if (strncmp(PASS_CMD,  user.msg.c_str(), strlen(PASS_CMD)) == 0) {
-    if (strncmp(PASS_WORD,  user.msg.c_str() + strlen(PASS_CMD), strlen(PASS_WORD)) == 0) {
+    if (strcmp(PASS_WORD,  user.msg.c_str() + strlen(PASS_CMD)) == 0) {
       user.status = status_logingIn;
       send_to_user(WELCOME, user);
     }
@@ -64,6 +64,8 @@ int parsing::setName(t_user& user) {
 
 
 int parsing::read(t_user& user) {
+  if (user.msg.back() == '\n')
+    user.msg.back() = '\0';
   if (user.status == status_newUser) {
     return valid_new_user(user);
   }
