@@ -58,9 +58,13 @@ int channel::remove(std::string name) {
     return 1;
   std::vector<t_channelData>::iterator it = _get(name);
   if (it != channels.end()) {
-    /*
-    * remove all user
-    */
+    std::vector<t_user*>::iterator user_it;
+    user_it = it->users.begin();
+    while (user_it != it->users.end()) {
+      t_user& tmp_user = *(*user_it);
+      
+      user_it++;
+    }
     channels.erase(it);
     return 0;
   }
@@ -96,12 +100,27 @@ std::vector<t_channelData>::iterator channel::_get(std::string name) {
 }
 
 # include <fcntl.h>
+# include <string.h>
 
 int  channel::logMessage(std::string name) {
   if (name.empty())
     return 1;
-  
+  std::vector<t_channelData>::const_iterator it;
+  it = _get(name);
+  if (it == channels.end())
+    return 2;
   const int fd = open(name.c_str(), O_CREAT | O_RDWR | O_TRUNC, 0644);
   if (fd < 0)
-    return 2;
+    return 3;
+  std::list<t_message>::const_iterator msg_it = it->messages.begin();
+  write(fd, "message:", 9);
+  write(fd, name.c_str(), name.length());
+  write(fd, "\n", 1);
+  for (; msg_it != it->messages.end(); msg_it++) {
+    write(fd, msg_it->time, strlen(msg_it->time));
+    write(fd, ":", 1);
+    write(fd, msg_it->txt.c_str(), msg_it->txt.length());
+  }
+  close(fd);
+  return 0;
 }
