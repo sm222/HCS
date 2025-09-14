@@ -18,6 +18,28 @@ bool channel::find(std::string name) const {
   return false;
 }
 
+bool channel::find_user(std::string name, t_user& user) {
+  std::vector<t_channelData>::iterator it = _get(name);
+  if (it == channels.end())
+    return false;
+  std::vector<t_user*>::iterator user_it = it->users.begin();
+  for ( ; user_it != it->users.end(); user_it++) {
+    if ((*user_it)->id == user.id)
+      return true;
+  }
+  return false;
+}
+
+bool channel::find_user(std::vector<t_channelData>::iterator it, t_user& user) {
+  if (it == channels.end())
+    return false;
+  std::vector<t_user*>::iterator user_it = it->users.begin();
+  for ( ; user_it != it->users.end(); user_it++) {
+    if ((*user_it)->id == user.id)
+      return true;
+  }
+  return false;
+}
 
 int channel::add(std::string name, t_user* user) {
   if (name.empty())
@@ -45,11 +67,11 @@ int channel::join(t_user& user, std::string name) {
       return 3;
     }
   }
+  // add if chan lock ?
+  char msg[200];
+  snprintf(msg, 199, "new user %s join channel\n", user.name.c_str());
+  message(name, msg);
   channel_it->users.push_back(&user);
-  message(name, "new user join channel\n");
-  /*
-  * notify here
-  */
   return 0;
 }
 
@@ -58,21 +80,31 @@ int channel::remove(std::string name) {
     return 1;
   std::vector<t_channelData>::iterator it = _get(name);
   if (it != channels.end()) {
-    std::vector<t_user*>::iterator user_it;
-    user_it = it->users.begin();
-    while (user_it != it->users.end()) {
-      t_user& tmp_user = *(*user_it);
-      
-      user_it++;
-    }
+    char msg[200];
+    snprintf(msg, 199, "leave:%s channel was close", name.c_str());
+    message(name, msg);
     channels.erase(it);
     return 0;
   }
   return 2;
 }
 
+int  channel::remove_user(std::string name, t_user& user) {
+  std::vector<t_channelData>::iterator it = _get(name);
+  if (!find_user(it, user))
+    return 1;
+  std::vector<t_user*>::iterator users_it = it->users.begin();
+  for ( ; users_it != it->users.end(); users_it++) {
+    if ((*users_it)->id == user.id) {
+      it->users.erase(users_it);
+      break ;
+    }
+  }
+  return 0;
+}
+
+
 int channel::message(std::string channel, std::string msg, t_user* from) {
-  (void)from;
   if (channel.empty() || msg.empty())
     return 1;
   std::vector<t_channelData>::iterator it = _get(channel);

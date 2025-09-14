@@ -32,7 +32,10 @@ class channel {
     ~channel();
     int  add(std::string name, t_user* user = nullptr);
     int  remove(std::string name);
+    int  remove_user(std::string name, t_user& user);
     bool find(std::string name) const;
+    bool find_user(std::string name, t_user& user);
+    bool find_user(std::vector<t_channelData>::iterator it, t_user& user);
     //
     int  message(std::string channel, std::string msg, t_user* from = nullptr);
     //

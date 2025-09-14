@@ -61,6 +61,33 @@ int parsing::setName(t_user& user) {
   return 1;
 }
 
+int parsing::join_chan(t_user& user, std::string name) {
+  if (user.status < status_valid) {
+    send_to_user("user not valid\n", user);
+    return 1;
+  }
+  if (!chans.find(name)) {
+    send_to_user("channel not valid\n", user);
+    return 2;
+  }
+  return chans.join(user, name);
+}
+
+int parsing::leave_chan(t_user& user, std::string name) {
+  if (user.status < status_valid) {
+    send_to_user("user not valid\n", user);
+    return 1;
+  }
+  if (!chans.find(name)) {
+    send_to_user("user can't leave chan not existing\n", user);
+    return 2;
+  }
+  if (!chans.find_user(name, user)) {
+    send_to_user("user can't leave chan is not in\n", user);
+    return 3;
+  }
+  return 0;
+}
 
 
 int parsing::read(t_user& user) {
