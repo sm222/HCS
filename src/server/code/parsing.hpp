@@ -23,6 +23,9 @@ class parsing {
     int kick(t_user& user, std::string  msg = "rip bozo");
     int join_chan(t_user& user, std::string name);
     int leave_chan(t_user& user, std::string name);
+    int add_cannel(t_user& user, std::string name);
+    //
+    int valid_user(t_user& user);
     //
     int setName(t_user& user);
     //

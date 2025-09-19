@@ -89,6 +89,23 @@ int parsing::leave_chan(t_user& user, std::string name) {
   return 0;
 }
 
+int parsing::add_cannel(t_user& user, std::string name) {
+  return chans.add(name, &user);
+}
+
+int parsing::valid_user(t_user& user) {
+  //join
+  if (strncmp("JOIN:", user.msg.c_str() , 5) == 0) {
+    printf("chan name > %s\n", user.msg.c_str() + 5);
+    return join_chan(user, user.msg.c_str() + 5);
+  }
+  //create
+  if (strncmp("ADD:", user.msg.c_str() , 4) == 0) {
+    printf("add > %s\n", user.msg.c_str() + 4);
+    return add_cannel(user, user.msg.c_str() + 4);
+  }
+  return 0;
+}
 
 int parsing::read(t_user& user) {
   if (user.msg.back() == '\n')
@@ -98,6 +115,9 @@ int parsing::read(t_user& user) {
   }
   else if (user.status == status_logingIn) {
     return setName(user);
+  }
+  else if (user.status == status_valid) {
+    return valid_user(user);
   }
   return 0;
 }
