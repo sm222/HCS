@@ -117,6 +117,7 @@ int parsing::read(t_user& user) {
     return setName(user);
   }
   else if (user.status == status_valid) {
+    printf("[%d]%s\n", user.id, user.msg.c_str());
     return valid_user(user);
   }
   return 0;

@@ -38,11 +38,17 @@ void send_to_user(std::string msg, t_user& user) {
   send(user.fd, msg.c_str(), msg.length(), 0);
 }
 
+void send_to_user(const char* str, t_user& user) {
+  send(user.fd, str, strlen(str), 0);
+}
 
 void send_to_user(std::string msg, int fd) {
   send(fd, msg.c_str(), msg.length(), 0);
 }
 
+void send_to_user(const char* str, int fd) {
+  send(fd, str, strlen(str), 0);
+}
 
 void send_message(t_networkData& data, t_user& from, userList& userData) {
   (void)data;
@@ -122,9 +128,11 @@ int network_loop(t_networkData& data, struct sockaddr_in& servaddr, t_setting* s
           buff[rb] = 0;
           it->msg += buff;
           if (it->msg.length() > 0 && it->msg.back() == '\n') {
-            if (passer.read(*it))
+            if (passer.read(*it)) {
               it = userData.begin();
+            }
             it->msg.clear();
+            print_sucsses(setting, "[%d]", it->id);
           }
         }
       }

@@ -59,18 +59,32 @@ int channel::join(t_user& user, std::string name) {
   if (user.status < status_valid)
     return 1;
   std::vector<t_channelData>::iterator channel_it = _get(name);
-  if (channel_it == channels.end())
+  if (channel_it == channels.end()) {
+    send_to_user("ERR:NCN\n", user);
     return 2;
+  }
   std::vector<t_user*>::iterator users_it = channel_it->users.begin();
   for (; users_it != channel_it->users.end(); users_it++) {
     if (*(*users_it) == user) {
+      char buff[200];
+      snprintf(buff, 199, "ERR:ARI %s %s\n", user.name.c_str(), name.c_str());
+      send_to_user(buff, user);
       return 3;
     }
   }
   // add if chan lock ?
   char msg[200];
-  snprintf(msg, 199, "new user %s join channel\n", user.name.c_str());
+  snprintf(msg, 199, "new user %s join %s\n", user.name.c_str(), channel_it->name.c_str());
   message(name, msg);
+  users_it = channel_it->users.begin();
+  send_to_user("USERLIST: ", user);
+  for (; users_it != channel_it->users.end(); users_it++) {
+    if (user.id != (*users_it)->id) {
+      snprintf(msg, 199, "%s ", (*users_it)->name.c_str());
+      send_to_user(msg, user);
+    }
+  }
+  send_to_user("\n", user);
   channel_it->users.push_back(&user);
   return 0;
 }

@@ -26,7 +26,8 @@ int network_loop(t_networkData& data, struct sockaddr_in& servaddr, t_setting* s
 
 void send_to_user(std::string msg, t_user& user);
 void send_to_user(std::string msg, int fd);
-
+void send_to_user(const char* str, t_user& user);
+void send_to_user(const char* str, int fd);
 
 # include <list>
   typedef std::list<t_user> userList;

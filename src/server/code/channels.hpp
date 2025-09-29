@@ -9,6 +9,24 @@
 
 //Wed Sep 10 16:23:32 2025 [28]
 
+
+const char* const MessageType[] = {
+  "ERR",
+  "PASS",
+  "NAME",
+  "ADD",
+  "JOIN",
+  NULL
+};
+
+const char* const MessageErr[] = {
+  "ARI", //all ready in
+  "NCN", //no chanell name
+  NULL
+};
+
+
+
 typedef struct t_message {
   t_user*      form;
   std::string  txt;

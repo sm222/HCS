@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/env bash
 
 #
 # -> make whit not AI
