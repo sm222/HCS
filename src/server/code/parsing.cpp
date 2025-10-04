@@ -45,11 +45,12 @@ int parsing::valid_new_user(t_user& user) {
 
 int parsing::setName(t_user& user) {
   const size_t offset = strlen(SET_NAME);
-  if (strncmp(SET_NAME,  user.msg.c_str(), offset) == 0) {
+  printf(">>>%s\n", user.msg.c_str());
+  if (strncmp(SET_NAME, user.msg.c_str(), offset) == 0) {
     size_t i = offset;
-    while (std::isspace(user.msg[i])) { i++; }
+    while (i < user.msg.length() && std::isspace(user.msg[i])) { i++; }
     size_t j = 0;
-    while (!std::isspace(user.msg[j + i])) { j++; }
+    while (i + j < user.msg.length() &&  !std::isspace(user.msg[j + i])) { j++; }
     user.name = user.msg.substr(i, j);
     send_to_user("welcome ", user);
     send_to_user(user.name, user);
@@ -95,30 +96,43 @@ int parsing::add_cannel(t_user& user, std::string name) {
 
 int parsing::valid_user(t_user& user) {
   //join
+  int error = 0;
   if (strncmp("JOIN:", user.msg.c_str() , 5) == 0) {
     printf("chan name > %s\n", user.msg.c_str() + 5);
-    return join_chan(user, user.msg.c_str() + 5);
+    error = join_chan(user, user.msg.c_str() + 5);
   }
   //create
   if (strncmp("ADD:", user.msg.c_str() , 4) == 0) {
     printf("add > %s\n", user.msg.c_str() + 4);
-    return add_cannel(user, user.msg.c_str() + 4);
+    error = add_cannel(user, user.msg.c_str() + 4);
   }
-  return 0;
+  if (strncmp("LIST:", user.msg.c_str() , 5) == 0) {
+    error = chans.list(user.msg.c_str() + 5);
+  }
+  user.msg.clear();
+  return error;
+}
+
+
+int parsing::dc(t_user& user) {
+  return chans.disc(user);
 }
 
 int parsing::read(t_user& user) {
   if (user.msg.back() == '\n')
     user.msg.back() = '\0';
+  int error = 0;
   if (user.status == status_newUser) {
-    return valid_new_user(user);
+    error = valid_new_user(user);
   }
   else if (user.status == status_logingIn) {
-    return setName(user);
+    error = setName(user);
   }
   else if (user.status == status_valid) {
-    printf("[%d]%s\n", user.id, user.msg.c_str());
+    printf("[%d] \\ %s\n", user.id, user.msg.c_str());
     return valid_user(user);
   }
-  return 0;
+  if (!user.msg.empty())
+    user.msg.clear();
+  return error;
 }

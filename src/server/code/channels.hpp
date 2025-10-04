@@ -16,6 +16,7 @@ const char* const MessageType[] = {
   "NAME",
   "ADD",
   "JOIN",
+  "LIST",
   NULL
 };
 
@@ -28,7 +29,7 @@ const char* const MessageErr[] = {
 
 
 typedef struct t_message {
-  t_user*      form;
+  char         name[200];
   std::string  txt;
   char         time[26];
 } t_message;
@@ -48,6 +49,7 @@ class channel {
   public:
     channel();
     ~channel();
+    int  disc(t_user& user);
     int  add(std::string name, t_user* user = nullptr);
     int  remove(std::string name);
     int  remove_user(std::string name, t_user& user);
@@ -56,6 +58,7 @@ class channel {
     bool find_user(std::vector<t_channelData>::iterator it, t_user& user);
     //
     int  message(std::string channel, std::string msg, t_user* from = nullptr);
+    int  list(std::string channel);
     //
     int  join(t_user& user, std::string name);
     int  leave(t_user& user, std::string name);

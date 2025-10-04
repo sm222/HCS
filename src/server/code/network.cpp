@@ -64,6 +64,7 @@ t_user add_user(int fd, t_networkData& data, std::list<t_user>& userData) {
   const char* addres = inet_ntoa(data.servaddr.sin_addr);
   const size_t addres_len = strlen(addres);
   t_user newUser;
+  newUser.msg = "";
   newUser.fd = fd;
   newUser.status = status_newUser;
   newUser.id = ++data.idTotal;
@@ -117,6 +118,7 @@ int network_loop(t_networkData& data, struct sockaddr_in& servaddr, t_setting* s
         ssize_t rb = recv(it->fd, buff, 1000, 0);
         if (rb <= 0) {
           char leaveB[100];
+          passer.dc((*it));
           snprintf(leaveB, 99, "[id > %d|addr > %s]%s:left\n", it->id, it->ip, it->name.c_str());
           fprintf(stderr, "%s", leaveB);
           it->msg = leaveB;
@@ -128,11 +130,8 @@ int network_loop(t_networkData& data, struct sockaddr_in& servaddr, t_setting* s
           buff[rb] = 0;
           it->msg += buff;
           if (it->msg.length() > 0 && it->msg.back() == '\n') {
-            if (passer.read(*it)) {
+            if (passer.read(*it))
               it = userData.begin();
-            }
-            it->msg.clear();
-            print_sucsses(setting, "[%d]", it->id);
           }
         }
       }

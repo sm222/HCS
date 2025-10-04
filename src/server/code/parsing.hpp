@@ -18,6 +18,7 @@ class parsing {
     parsing(t_networkData& data, userList& listUsers);
     ~parsing(void);
     int read(t_user& user);
+    int dc(t_user& user);
   private:
     int valid_new_user(t_user& user);
     int kick(t_user& user, std::string  msg = "rip bozo");

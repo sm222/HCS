@@ -9,6 +9,15 @@ channel::~channel() {
   
 }
 
+int  channel::disc(t_user& user) {
+  int nb = 0;
+  std::vector<t_channelData>::iterator it = channels.begin();
+  for ( ; it != channels.end(); it++) {
+    nb += !remove_user(it->name, user);
+  }
+  return nb;
+}
+
 bool channel::find(std::string name) const {
   std::vector<t_channelData>::const_iterator it;
   for (it = channels.begin(); it != channels.end(); it++) {
@@ -127,11 +136,23 @@ int channel::message(std::string channel, std::string msg, t_user* from) {
   std::vector<t_user*>::iterator user_it = it->users.begin();
   t_message m;
   SET_MESSAGE_TIME(m.time);
-  m.form = from;
   m.txt = msg;
+  (void)from;
+  m.name[0] = 0;
   it->messages.push_back(m);
   for (; user_it != it->users.end(); user_it++) {
     send_to_user(msg, *(*user_it));
+  }
+  return 0;
+}
+
+int channel::list(std::string channel) {
+  std::vector<t_channelData>::iterator it = _get(channel);
+  if (it == channels.end())
+    return 1;
+  std::vector<t_user*>::const_iterator l = it->users.begin();
+  for (; l != it->users.end(); l++) {
+    printf("* - %s\n", (*l)->name.c_str());
   }
   return 0;
 }
