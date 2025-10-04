@@ -64,11 +64,12 @@ t_user add_user(int fd, t_networkData& data, std::list<t_user>& userData) {
   const char* addres = inet_ntoa(data.servaddr.sin_addr);
   const size_t addres_len = strlen(addres);
   t_user newUser;
-  newUser.msg = "";
   newUser.fd = fd;
   newUser.status = status_newUser;
-  newUser.id = ++data.idTotal;
+  newUser.msg = "";
+  newUser.name = "";
   memcpy(newUser.ip, addres, addres_len + 1);
+  newUser.id = ++data.idTotal;
   data.nuberUser++;
   userData.push_front(newUser);
   send_to_user("welcome: please register on the server\n", newUser);
@@ -124,7 +125,7 @@ int network_loop(t_networkData& data, struct sockaddr_in& servaddr, t_setting* s
           it->msg = leaveB;
           send_message(data, *it, userData);
           remove_user(it->fd, data, userData, it);
-          it = userData.begin();
+          break;
         }
         else {
           buff[rb] = 0;
