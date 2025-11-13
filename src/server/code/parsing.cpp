@@ -133,6 +133,6 @@ int parsing::read(t_user& user) {
     return valid_user(user);
   }
   if (!user.msg.empty())
-    user.msg.clear();
+    user.msg = "";
   return error;
 }

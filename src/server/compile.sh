@@ -6,7 +6,8 @@
 # 
 vertion=0
 
-files='code/*.cpp'
+files='code2/*.c'
+baseFiles='../dup/flags.c ../dup/main.c ../dup/utilse.c'
 
 flags='-g -Wall -Werror -Wextra'
 
@@ -14,7 +15,7 @@ name='HCS.out'
 
 
 
-line="c++ $flags $files -o $name"
+line="cc $flags $baseFiles $files -o $name"
 
 #
 echo $line
