@@ -68,6 +68,11 @@ typedef struct mainData {
 } t_mainData;
 
 # include "flags.h"
+
+typedef  int (*avProsses)(void* , const char*);
+
+typedef  int (*program)(void*);
+
 typedef struct setting {
   const int          stdIn;
   const int          stdOut;
@@ -79,6 +84,8 @@ typedef struct setting {
   int32_t            flags;
   const char* const* env;
   t_flagValue*       flagValue;
+  avProsses          avFt;
+  program            programFt;
 } t_setting;
 
 
