@@ -58,6 +58,18 @@ int fv_set_name(t_flagValue* node, const char* name) {
   return 0;
 }
 
+ssize_t fv_list_len(const t_flagValue** head) {
+  if (!head)
+    return -1;
+  ssize_t i = 0;
+  const t_flagValue* ptr = *head;
+  while (ptr) {
+    i++;
+    ptr = ptr->next;
+  }
+  return i;
+}
+
 # include <stdio.h>
 void fv_print(t_flagValue* list) {
   for ( ; list; list = list->next) {

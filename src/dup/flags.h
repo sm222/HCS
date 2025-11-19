@@ -1,11 +1,6 @@
 #ifndef __FLAGS__
 # define __FLAGS__
 
-enum valueArg {
-  e_bool,
-  e_next,
-  e_equal,
-};
 
 # define FLAG_NAME_LEN 100
 
@@ -17,9 +12,12 @@ typedef struct s_flagValue {
 } t_flagValue;
 
 
+# include <stdio.h>
+
 int          fv_add_last(t_flagValue** list, int flag, const char* value);
 int          fv_free(t_flagValue** list);
 int          fv_set_name(t_flagValue* node, const char* name);
 void         fv_print(t_flagValue* list);
+ssize_t      fv_list_len(const t_flagValue** head);
 
 #endif
