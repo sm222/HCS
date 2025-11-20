@@ -3,6 +3,14 @@
 
 #include "serverMain.h"
 
+int addValue(void* ptr, const char* v) {
+  static int i = 0;
+  if (!ptr || !v)
+    return -1;
+  t_setting* data = ptr;
+  const int e = fv_add_last(&data->flagValue, i++, v);
+  return e < 0 ? 1 : 0;
+}
 
 int setStart(void* ptr) {
   if (!ptr) {
@@ -10,7 +18,7 @@ int setStart(void* ptr) {
     return 1;
   }
   t_setting* data = ptr;
-  printf("setup work:%s\n", data->av[0]);
+  data->avFt      = addValue;
   data->programFt = starMain;
   return 0;
 }
