@@ -73,7 +73,6 @@ static int base(t_mainData data, int fdIn, int fdOut) {
     }
     if (read_byte(programSetting.flags, setting_continue_on_error) && status)
       return status;
-    put_str_error(&programSetting, RED, "code %d", status);
   }
   if (programSetting.programFt)
     status = programSetting.programFt(&programSetting);

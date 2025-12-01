@@ -6,7 +6,7 @@
 int addValue(void* ptr, const char* v) {
   static int i = 0;
   if (!ptr || !v)
-    return -1;
+    return 3;
   t_setting* data = ptr;
   const int e = fv_add_last(&data->flagValue, i++, v);
   return e < 0 ? 1 : 0;
