@@ -25,6 +25,7 @@ typedef enum userStatus {
 
 typedef struct t_user {
   unsigned int id;
+  int          fd;
   int32_t      status;
   char         name[(NAME_LEN + 1)];
   char         ip[(IP_LEN + 1)];

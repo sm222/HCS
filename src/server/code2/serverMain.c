@@ -24,7 +24,11 @@ int star_main(void* ptr) {
     return 1;
   }
   server_data server;
-  init_server(data, &server, nbArgs);
-  fv_free(&data->flagValue);
+  error += init_server(data, &server, nbArgs);
+  error += setup_server_user(data, &server);
+  if (error != 0)
+    return 1;
+  error = network_loop(&server);
+  server_clean_up(data, &server);
   return error;
 }
