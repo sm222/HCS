@@ -18,6 +18,8 @@ typedef struct {
   size_t       read;
 } user_data;
 
+# define DEF_PORT 8080
+
 typedef struct server_data {
   int          port;
   char         password[(MAX_PASS_LEN + 1)];
@@ -28,8 +30,12 @@ typedef struct server_data {
   unsigned int ids;
   struct sockaddr_in servaddr;
   //
-  user_data    data;
+  user_data    userData;
 } server_data;
+
+
+int init_server(t_setting* data, server_data* server, size_t nbArgs);
+
 
 
 #endif

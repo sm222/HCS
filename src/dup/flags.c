@@ -70,6 +70,20 @@ ssize_t fv_list_len(const t_flagValue** head) {
   return i;
 }
 
+char* fv_get_value(t_flagValue* head, size_t i) {
+  char* v = NULL;
+  if (!head)
+    return v;
+  t_flagValue* tmp = head;
+  while (i && tmp) {
+    i--;
+    tmp = tmp->next;
+  }
+  if (tmp)
+    v = tmp->value;
+  return v;
+}
+
 # include <stdio.h>
 void fv_print(t_flagValue* list) {
   for ( ; list; list = list->next) {

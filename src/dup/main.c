@@ -32,7 +32,7 @@ static bool test_name(const char* name) {
 }
 # endif
 
-int setStart(void*);
+int set_start(void*);
 
 static int base(t_mainData data, int fdIn, int fdOut) {
   int status = EX_OK;
@@ -56,7 +56,7 @@ static int base(t_mainData data, int fdIn, int fdOut) {
     return 1;
   # endif
   # ifdef SETUP_EXTERN
-  if (setStart(&programSetting))
+  if (set_start(&programSetting))
     return 1;
   # endif
   env_parsing(&programSetting);

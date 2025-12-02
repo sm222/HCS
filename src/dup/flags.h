@@ -19,5 +19,7 @@ int          fv_free(t_flagValue** list);
 int          fv_set_name(t_flagValue* node, const char* name);
 void         fv_print(t_flagValue* list);
 ssize_t      fv_list_len(const t_flagValue** head);
+int          fv_get_flag(t_flagValue* head, size_t i);
+char*        fv_get_value(t_flagValue* head, size_t i);
 
 #endif

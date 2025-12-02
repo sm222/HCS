@@ -6,6 +6,6 @@
 // 
 // typedef  int (*program)(void*);
 
-int  starMain(void* ptr);
+int  star_main(void* ptr);
 
 #endif

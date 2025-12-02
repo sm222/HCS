@@ -2,7 +2,7 @@
 # define SETTING_H
 
 # ifdef SETUP_EXTERN
-  int setStart(void*);
+  int set_start(void*);
 #endif
 
 #endif
