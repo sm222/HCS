@@ -20,7 +20,7 @@ typedef enum userStatus {
   online  = 1,
   status  = 2,
   admin   = 4,
-  
+  valid   = 8,
 } userStatus;
 
 typedef struct t_user {

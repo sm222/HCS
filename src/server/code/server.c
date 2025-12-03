@@ -5,6 +5,27 @@
 
 
 
+int send_str(server_data* server, size_t i, const char* msg) {
+  if (i >= MAX_USER)
+    return 1;
+  t_user* u = server->userData.users + i;
+  send(u->fd, msg, strlen(msg), 0);
+  return 0;
+}
+
+int send_str_all(server_data* server, const char* msg, const char* from) {
+  for (size_t i  = 1; i < MAX_USER; i++) {
+    t_user* u = server->userData.users + i;
+    if (u->fd) {
+      if (from)
+        send_str(server, i, from);
+      send_str(server, i, msg);
+    }
+  }
+  return 0;
+}
+
+
 static int try_bind(t_setting* data, server_data* server) {
   server->servaddr.sin_port = htons(server->port);
   if (bind(server->socketFd,(const struct sockaddr *)&(server->servaddr) , sizeof(server->servaddr))) {
@@ -39,7 +60,7 @@ int init_server(t_setting* data, server_data* server, size_t nbArgs) {
   server->servaddr.sin_addr.s_addr = INADDR_ANY;
   if (try_bind(data, server))
     return 1;
-  if (listen(server->socketFd, 10) < 0) {
+  if (listen(server->socketFd, MAX_USER) < 0) {
     perror("listen");
     return 1;
   }
@@ -71,8 +92,18 @@ int setup_server_user(t_setting* data, server_data* server) {
   return 0;
 }
 
+static int rm_message(server_data* server, size_t i) {
+  if (i >= MAX_USER)
+    return 1;
+  free(server->userData.users[i].msg);
+  server->userData.users[i].msg = NULL;
+  return 0;
+}
 
 int server_clean_up(t_setting* data, server_data* server) {
+  for (size_t i = 0; i < MAX_USER; i++) {
+    rm_message(server, i);
+  }
   free(server->userData.users);
   fv_free(&data->flagValue);
   return 0;
@@ -107,6 +138,15 @@ static int add_user(int fd, server_data* server) {
   memcpy(server->userData.users[i].ip, addres, addres_len + 1);
   server->userData.regist++;
   printf("ip: %s\nindex: %u\n", addres, i);
+  send_str_all(server, "new user\n", "server:");
+  return 0;
+}
+
+static int whipe_user(server_data* server) {
+  if (!read_byte(server->userData.users[server->userData.read].status, valid)) {
+    bzero(&server->userData.users[server->userData.read], sizeof(t_user));
+    printf("user %zu was whipe\n", server->userData.read);
+  }
   return 0;
 }
 
@@ -115,8 +155,7 @@ static int remove_user(server_data* server) {
   server->nbUser--;
   close(server->userData.users[server->userData.read].fd);
   server->userData.users[server->userData.read].fd = 0;
-  free(server->userData.users[server->userData.read].msg);
-  server->userData.users[server->userData.read].msg = NULL;
+  rm_message(server, server->userData.read);
   return 0;
 }
 
@@ -125,16 +164,20 @@ static int manage_user(server_data* server) {
   const ssize_t readByte = recv(server->userData.users[server->userData.read].fd, buff , READ_BUFF_SIZE, 0);
   if (readByte <= 0) {
     remove_user(server);
+    whipe_user(server);
     printf("dc\n");
     return 0;
   }
   buff[readByte] = 0;
-  printf("%s:%s\n", server->userData.users[server->userData.read].ip, buff);
+  printf("%s:%s", server->userData.users[server->userData.read].ip, buff);
+  if (strcmp("exit\n", buff) == 0)
+    return 1;
   return 0;
 }
 
 int network_loop(server_data* server) {
-  while (true) {
+  int kill = 0;
+  while (!kill) {
     server->rs = server->ws = server->as;
     if (select(server->nbUser + 1, &server->rs, &server->ws, NULL, NULL) < 0) {
       perror("select");
@@ -155,9 +198,10 @@ int network_loop(server_data* server) {
         }
       }
       else {
-        manage_user(server);
+        kill = manage_user(server);
       }
     }
   }
+  send_str_all(server, "closing goodbye!\n", "server: ");
   return 0;
 }
