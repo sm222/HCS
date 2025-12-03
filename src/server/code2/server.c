@@ -114,7 +114,9 @@ static int remove_user(server_data* server) {
   FD_CLR(server->userData.users[server->userData.read].fd, &server->as);
   server->nbUser--;
   close(server->userData.users[server->userData.read].fd);
-  //server->userData.users[server->userData.read].id = 0;
+  server->userData.users[server->userData.read].fd = 0;
+  free(server->userData.users[server->userData.read].msg);
+  server->userData.users[server->userData.read].msg = NULL;
   return 0;
 }
 
