@@ -2,6 +2,7 @@
 # include "server.h"
 # include <stdlib.h>
 # include <arpa/inet.h>
+# include "serverParsing.h"
 
 
 
@@ -159,6 +160,45 @@ static int remove_user(server_data* server) {
   return 0;
 }
 
+static char* join_free(char* s1, const char* s2) {
+  char* res = NULL;
+  size_t s1L = 0, s2L = 0;
+  //
+  s1L = strlen(s1);
+  s2L = strlen(s2);
+  res = calloc(s1L + s2L + 1, sizeof(char));
+  if (!res) {
+    free(s1);
+    return NULL;
+  }
+  while (s2L--) {
+    res[s1L + s2L] = s2[s2L];
+  }
+  while (s1L--) {
+    res[s1L] = s1[s1L];
+  }
+  free(s1);
+  return res;
+}
+
+static int edit_user_msg(server_data* server, const char* b) {
+  t_user* u = server->userData.users + server->userData.read;
+  if (u->msg) {
+    u->msg = join_free(u->msg, b);
+  } else {
+    u->msg = d__strdup(b);
+  }
+  return u->msg ? 0 : 1;
+}
+
+static void clean_str(char* s, ssize_t l) {
+  if (l > 0) {
+    if (s[l - 1] == '\n') {
+      s[l - 1] = 0;
+    }
+  }
+}
+
 static int manage_user(server_data* server) {
   char buff[READ_BUFF_SIZE + 1];
   const ssize_t readByte = recv(server->userData.users[server->userData.read].fd, buff , READ_BUFF_SIZE, 0);
@@ -169,10 +209,10 @@ static int manage_user(server_data* server) {
     return 0;
   }
   buff[readByte] = 0;
-  printf("%s:%s", server->userData.users[server->userData.read].ip, buff);
-  if (strcmp("exit\n", buff) == 0)
-    return 1;
-  return 0;
+  clean_str(buff, readByte);
+  edit_user_msg(server, buff);
+  printf("%s:%s\n", server->userData.users[server->userData.read].ip, server->userData.users[server->userData.read].msg);
+  return dispatch(server);
 }
 
 int network_loop(server_data* server) {
