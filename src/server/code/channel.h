@@ -27,7 +27,8 @@ typedef struct s_msg {
 
 typedef struct s_msg_block {
   struct s_msg_block* next;
-  t_msg  msgs[100];
+  t_msg               msgs[255];
+  int8_t              i;
 } t_msg_block;
 
 typedef struct s_channel {
