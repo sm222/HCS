@@ -1,8 +1,10 @@
 #ifndef  CHANNEL_H
 # define CHANNEL_H
 
-#include "../../dup/utilse.h"
+# include "../../dup/utilse.h"
 # include "user.h"
+# include <time.h>
+
 
 
 typedef enum {
@@ -21,12 +23,14 @@ typedef enum {
 
 typedef struct s_msg {
   msg_type     tag;
+  int          timeDif;
   size_t       size;
   void*        data;
 } t_msg;
 
 typedef struct s_msg_block {
   struct s_msg_block* next;
+  time_t              first;
   t_msg               msgs[255];
   int8_t              i;
 } t_msg_block;
