@@ -30,9 +30,9 @@ typedef struct s_msg {
 
 typedef struct s_msg_block {
   struct s_msg_block* next;
-  time_t              first;
+  const time_t        first;
   t_msg               msgs[255];
-  int8_t              i;
+  int16_t             i;
 } t_msg_block;
 
 typedef struct s_channel {
@@ -41,7 +41,6 @@ typedef struct s_channel {
   const char*       name;
   int32_t           status;
   size_t            maxUser;
-
 } channel;
 
 #endif
