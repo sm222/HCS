@@ -15,6 +15,7 @@ typedef enum {
 } channel_status;
 
 typedef enum {
+  none,
   txt,
   img,
   audio,
@@ -40,6 +41,7 @@ typedef struct s_channel {
   struct s_channel* prev;
   const char*       name;
   int32_t           status;
+  t_msg_block*      block;
   size_t            maxUser;
 } channel;
 
