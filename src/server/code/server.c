@@ -107,6 +107,7 @@ int server_clean_up(t_setting* data, server_data* server) {
   }
   free(server->userData.users);
   fv_free(&data->flagValue);
+  free_block(server->def.block);
   return 0;
 }
 

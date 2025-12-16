@@ -5,6 +5,7 @@
 # include <sys/socket.h>
 # include <netinet/in.h>
 //
+# include "channel.h"
 # include "user.h"
 
 
@@ -32,7 +33,9 @@ typedef struct server_data {
   unsigned int ids;
   struct sockaddr_in servaddr;
   //
+  channel      def;
   user_data    userData;
+
 } server_data;
 
 

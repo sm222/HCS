@@ -6,6 +6,7 @@
 # include <time.h>
 
 
+# define BLOCK_SIZE 10
 
 typedef enum {
   cs_open           = 1,
@@ -31,8 +32,8 @@ typedef struct s_msg {
 
 typedef struct s_msg_block {
   struct s_msg_block* next;
-  const time_t        first;
-  t_msg               msgs[255];
+  time_t              first;
+  t_msg               msgs[BLOCK_SIZE];
   int16_t             i;
 } t_msg_block;
 
@@ -44,5 +45,8 @@ typedef struct s_channel {
   t_msg_block*      block;
   size_t            maxUser;
 } channel;
+
+void free_block(t_msg_block* head);
+int add_msg(channel* chan, t_msg msg);
 
 #endif
