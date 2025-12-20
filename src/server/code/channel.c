@@ -10,6 +10,7 @@ static int edit_msg(t_msg_block* block, t_msg msg) {
   if (block->i == BLOCK_SIZE) {
     return 1;
   }
+  printf("->%d\n", block->i);
   block->msgs[block->i] = (t_msg){
     .timeDif = get_time_dif(block->first),
     .data = msg.data,
@@ -22,21 +23,24 @@ static int edit_msg(t_msg_block* block, t_msg msg) {
 
 void free_block(t_msg_block* head) {
   size_t total = 0;
+  size_t totalB = 0;
   while (head) {
+    totalB++;
     t_msg_block* next = head->next;
     printf("free loop\n");
-    while (head->i > 1) {
-      head->i--;
-      if (head->msgs[head->i].tag == txt) {
+    int i = 0;
+    while (i < BLOCK_SIZE) {
+      i++;
+      if (head->msgs[i].tag == txt) {
         total++;
-        free(head->msgs[head->i].data);
-        head->msgs[head->i].data = NULL;
+        free(head->msgs[i].data);
+        head->msgs[i].data = NULL;
       }
     }
     free(head);
     head = next;
   }
-  printf("messages free: %zu\n", total);
+  printf("messages free: %zu| block %zu\n", total, totalB);
 }
 
 
@@ -83,8 +87,10 @@ int add_msg(channel* chan, t_msg msg) {
     edit_msg(chan->block, msg);
   }
   if (edit_msg(chan->block, msg)){
-    if (make_block_last(&chan->block))
+    if (make_block_last(&chan->block)) {
+      printf("ERR\n");
       return 1;
+    }
     t_msg_block* last = get_last_block(chan);
     edit_msg(last, msg);
   }
