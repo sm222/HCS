@@ -30,12 +30,12 @@ void free_block(t_msg_block* head) {
     printf("free loop\n");
     int i = 0;
     while (i < BLOCK_SIZE) {
-      i++;
       if (head->msgs[i].tag == txt) {
         total++;
         free(head->msgs[i].data);
         head->msgs[i].data = NULL;
       }
+      i++;
     }
     free(head);
     head = next;
@@ -81,18 +81,15 @@ int add_msg(channel* chan, t_msg msg) {
   if (!chan) {
     return 2;
   }
-  if (!chan->block) {
-    if (make_block_last(&chan->block))
-      return 1;
-    edit_msg(chan->block, msg);
-  }
-  if (edit_msg(chan->block, msg)){
+  t_msg_block* last = get_last_block(chan);
+  if (!last || last->i >= BLOCK_SIZE) {
     if (make_block_last(&chan->block)) {
-      printf("ERR\n");
+      free(msg.data);
+      msg.data = NULL;
       return 1;
     }
-    t_msg_block* last = get_last_block(chan);
-    edit_msg(last, msg);
   }
+  last = get_last_block(chan);
+  edit_msg(last, msg);
   return 0;
 }
