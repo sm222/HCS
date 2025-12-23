@@ -40,7 +40,7 @@ void free_block(t_msg_block* head) {
     free(head);
     head = next;
   }
-  printf("messages free: %zu| block %zu\n", total, totalB);
+  printf("messages free:%zu| block %zu\n", total, totalB);
 }
 
 
