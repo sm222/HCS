@@ -5,8 +5,11 @@
 # include "user.h"
 # include <time.h>
 
-
-# define BLOCK_SIZE 10
+# ifdef DEV
+#  define BLOCK_SIZE 10
+# else
+#  define BLOCK_SIZE 255
+# endif
 
 typedef enum {
   cs_open           = 1,

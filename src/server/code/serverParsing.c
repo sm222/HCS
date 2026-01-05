@@ -4,6 +4,8 @@
 
 static bool ask_password(server_data* server, t_user* u) {
   if (strcmp(server->password, u->msg) == 0) {
+    const size_t l = strlen(u->msg);
+    memset(u->msg, 0, l);
     set_byte(&u->status, valid, true);
     return 1;
   }
@@ -26,8 +28,12 @@ int dispatch(server_data* server) {
     ref->msg = NULL;
     return 1;
   }
-  if (is_user_valid(server, ref))
+  if (is_user_valid(server, ref)) {
     return 2;
+  }
+  if (*ref->msg == 0) {
+    return 0;
+  }
   t_msg m = {
     txt,
     0,

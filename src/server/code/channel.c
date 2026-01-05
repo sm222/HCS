@@ -27,7 +27,6 @@ void free_block(t_msg_block* head) {
   while (head) {
     totalB++;
     t_msg_block* next = head->next;
-    printf("free loop\n");
     int i = 0;
     while (i < BLOCK_SIZE) {
       if (head->msgs[i].tag == txt) {
@@ -46,7 +45,8 @@ void free_block(t_msg_block* head) {
 
 static t_msg_block* make_block(void) {
   t_msg_block* r = calloc(1, sizeof(*r));
-  r->first = time(NULL);
+  if (r)
+    r->first = time(NULL);
   return r;
 }
 
