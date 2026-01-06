@@ -2,11 +2,25 @@
 # include <stdlib.h>
 # include "user.h"
 
+static void server_say_hello(server_data* server, t_user* u) {
+  char buff[100];
+  time_t rawtime;
+  struct tm * timeinfo;
+
+  time(&rawtime);
+  timeinfo = localtime(&rawtime);
+  const char* s = asctime(timeinfo);
+  const size_t s_len = strlen(s);
+  sprintf(buff, "%.*s HCS %s\n", (int)s_len - 1, s, VERTION);
+  send_to_user(server, u, buff);
+}
+
 static bool ask_password(server_data* server, t_user* u) {
   if (strcmp(server->password, u->msg) == 0) {
     const size_t l = strlen(u->msg);
     memset(u->msg, 0, l);
     set_byte(&u->status, valid, true);
+    server_say_hello(server, u);
     return 1;
   }
   return 0;
@@ -39,6 +53,7 @@ int dispatch(server_data* server) {
     0,
     strlen(ref->msg),
     ref->msg,
+    NULL
   };
   ref->msg = NULL;
   add_msg(&server->def, m);

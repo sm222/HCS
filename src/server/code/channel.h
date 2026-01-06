@@ -31,6 +31,7 @@ typedef struct s_msg {
   int          timeDif;
   size_t       size;
   void*        data;
+  t_user*      user;
 } t_msg;
 
 typedef struct s_msg_block {
@@ -40,6 +41,8 @@ typedef struct s_msg_block {
   int16_t             i;
 } t_msg_block;
 
+# define MAX_USER_CHANNEL 100
+
 typedef struct s_channel {
   struct s_channel* next;
   struct s_channel* prev;
@@ -47,6 +50,7 @@ typedef struct s_channel {
   int32_t           status;
   t_msg_block*      block;
   size_t            maxUser;
+  t_user*           userList[MAX_USER_CHANNEL];
 } channel;
 
 void free_block(t_msg_block* head);

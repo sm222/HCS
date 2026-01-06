@@ -8,6 +8,7 @@
 # include "channel.h"
 # include "user.h"
 
+# define VERTION "0.0.1"
 
 # define MAX_PASS_LEN 255
 # define MAX_USER     200
@@ -48,7 +49,7 @@ int network_loop(server_data* server);
 
 int send_str_all(server_data* server, const char* msg, const char* from);
 int send_str(server_data* server, size_t i, const char* msg);
-
+int send_to_user(server_data* server, t_user* u, const char* msg);
 
 
 #endif
