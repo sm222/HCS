@@ -5,13 +5,13 @@
 static void server_say_hello(server_data* server, t_user* u) {
   char buff[100];
   time_t rawtime;
-  struct tm * timeinfo;
+  struct tm* timeinfo;
 
   time(&rawtime);
   timeinfo = localtime(&rawtime);
   const char* s = asctime(timeinfo);
   const size_t s_len = strlen(s);
-  sprintf(buff, "%.*s HCS %s\n", (int)s_len - 1, s, VERTION);
+  sprintf(buff, "hello:%.*s HCS %s\n", (int)s_len - 1, s, VERTION);
   send_to_user(server, u, buff);
 }
 
