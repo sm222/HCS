@@ -1,14 +1,16 @@
 #ifndef  SERVER_CMD_H
 # define SERVER_CMD_H
 
-typedef enum {
-  hello = 0,
-  exit,
-} t_server_cmd;
+
+# define LEN_OF_CODE 2
+
 
 static const char* const server_cmd[] = {
-  "hello:",
-  "exit:"
+  "00:hello:"  ,
+  "01:exit:"   ,
+  "02:login"   ,
+  "03:logout"  ,
+  "04:makeUser",
 };
 
 #endif //SERVER_CMD_H
