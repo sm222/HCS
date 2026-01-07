@@ -22,6 +22,11 @@ int send_str(server_data* server, size_t i, const char* msg) {
   return 0;
 }
 
+static int server_closing(server_data* server) {
+  send_str_all(server, "01:exit server closing goodbye!\n", NULL);
+  return 0;
+}
+
 int send_str_all(server_data* server, const char* msg, const char* from) {
   for (size_t i  = 1; i < MAX_USER; i++) {
     t_user* u = server->userData.users + i;
@@ -138,13 +143,14 @@ static int add_user(int fd, server_data* server) {
   const char* addres = inet_ntoa(server->servaddr.sin_addr);
   const size_t addres_len = strlen(addres);
   unsigned int i  = 1;
-  printf("add nb:%u\nid:%u\n", server->nbUser, server->ids);
+  printf("add nb:%u\nid:%u\n", server->nbUser, server->ids); //! log
   while (i < MAX_USER) {
     if (server->userData.users[i].id == 0)
       break ;
     i++;
   }
   if (i == MAX_USER) {
+    // need to close fd and other info
     printf("out of space can't add user\n");
     return 1;
   }
@@ -263,6 +269,6 @@ int network_loop(server_data* server) {
       }
     }
   }
-  send_str_all(server, "closing goodbye!\n", "server: ");
+  server_closing(server);
   return 0;
 }
