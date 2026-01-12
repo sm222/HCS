@@ -118,7 +118,7 @@ int setup_server_user(t_setting* data, server_data* server) {
   return 0;
 }
 
-static int rm_message(server_data* server, size_t i) {
+static int rm_user_message(server_data* server, size_t i) {
   if (i >= MAX_USER)
     return 1;
   free(server->userData.users[i].msg);
@@ -128,7 +128,7 @@ static int rm_message(server_data* server, size_t i) {
 
 int server_clean_up(t_setting* data, server_data* server) {
   for (size_t i = 0; i < MAX_USER; i++) {
-    rm_message(server, i);
+    rm_user_message(server, i);
   }
   free(server->userData.users);
   fv_free(&data->flagValue);
@@ -150,7 +150,7 @@ static int add_user(int fd, server_data* server) {
     i++;
   }
   if (i == MAX_USER) {
-    // need to close fd and other info
+    //! need to close fd and other info
     printf("out of space can't add user\n");
     return 1;
   }
@@ -183,7 +183,7 @@ static int remove_user(server_data* server) {
   server->nbUser--;
   close(server->userData.users[server->userData.read].fd);
   server->userData.users[server->userData.read].fd = 0;
-  rm_message(server, server->userData.read);
+  rm_user_message(server, server->userData.read);
   return 0;
 }
 

@@ -46,6 +46,7 @@ int server_clean_up(t_setting* data, server_data* server);
 
 int network_loop(server_data* server);
 
+int set_user_data(void* data, t_user* user);
 
 int send_str_all(server_data* server, const char* msg, const char* from);
 int send_str(server_data* server, size_t i, const char* msg);

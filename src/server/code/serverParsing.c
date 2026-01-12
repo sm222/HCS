@@ -3,36 +3,40 @@
 # include <ctype.h>
 # include "user.h"
 # include "server_cmd.h"
+# include <stdarg.h>
+
+void server_say(const size_t bSize, server_data* server, t_user* u, const char* msg, ...) {
+  if (bSize == 0)
+    return;
+  va_list ap;
+  char out[bSize];
+  va_start(ap, msg);
+  bzero(out, bSize);
+  vsprintf(out, msg, ap);
+  send_to_user(server, u, out);
+  va_end(ap);
+}
 
 static void server_say_hello(server_data* server, t_user* u) {
-  char buff[100];
-
   time_t rawtime = time(NULL);
   struct tm* timeinfo = localtime(&rawtime);
   const char* s = asctime(timeinfo);
   const size_t s_len = strlen(s);
-  sprintf(buff, "00:hello %.*s HCS %s\n", (int)s_len - 1, s, VERTION);
-  send_to_user(server, u, buff);
+  server_say(1001, server, u, "00:hello %.*s HCS %s\n", (int)s_len - 1, s, VERTION);
 }
 
 static bool ask_password(server_data* server, t_user* u) {
   if (strcmp(server->password, u->msg) == 0) {
     const size_t l = strlen(u->msg);
     memset(u->msg, 0, l);
-    set_byte(&u->status, valid, true);
+    set_byte(&u->status, pass_chek, true);
     server_say_hello(server, u);
     return 1;
   }
+  server_say(401, server, u, "00:badPassword try again\n");
+  free(u->msg);
+  u->msg = NULL;
   return 0;
-}
-
-
-static int is_user_valid(server_data* server, t_user* u) {
-  if (read_byte(u->status, valid)) {
-    return 0;
-  }
-  const bool pass = ask_password(server, u);
-  return pass ? 0 : 2;
 }
 
 
@@ -62,6 +66,12 @@ static int test_cmd(server_data* server, const t_user* ref) {
   return 0;
 }
 
+static int got_password(server_data* server, t_user* user) {
+  if (read_byte(user->status, pass_chek))
+    return 0;
+  return !ask_password(server, user);
+}
+
 int dispatch(server_data* server) {
   t_user* ref = server->userData.users + server->userData.read;
   if (strcmp("exit", ref->msg) == 0) { //! only for dev
@@ -69,11 +79,11 @@ int dispatch(server_data* server) {
     ref->msg = NULL;
     return 1;
   }
-  if (is_user_valid(server, ref)) {
-    return 2;
-  }
   test_cmd(server, ref);
   if (*ref->msg == 0) {
+    return 0;
+  }
+  if (got_password(server, ref)) {
     return 0;
   }
   t_msg m = {

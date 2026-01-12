@@ -17,10 +17,12 @@
 //? 1      | 1
 
 typedef enum userStatus {
-  online  = 1,
-  status  = 2,
-  admin   = 4,
-  valid   = 8,
+  online    = 1,
+  status    = 2,
+  admin     = 4,
+  valid     = 8,
+  pass_chek = 16,
+  force_dc  = 32,
 } userStatus;
 
 typedef struct t_user {
