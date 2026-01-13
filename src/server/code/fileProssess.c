@@ -21,8 +21,6 @@ static void* ft_sfree(void* ptr) {
   return NULL;
 }
 
-
-
 static char  *ft_strjoin(char *sfree, char *s2) {
   size_t s1_i = strlen(sfree ? sfree : "");
   size_t s2_i = strlen(s2 ? s2 : "");
@@ -169,3 +167,20 @@ void free_file(t_file** file) {
   *file = NULL;
 }
 
+int get_file_type(const t_file* file) {
+  if (!file || file->arraySize <= 1) {
+    return invalid_file;
+  }
+  const char* firstLine = file->rawFile[0];
+  if (strncmp(firstLine, "#TYPE:", 6) == 0) {
+    if (strcmp(firstLine + 6, "USER\n") == 0)
+      return user_file;
+  }
+  return invalid_file;
+}
+
+/*
+int set_user_from_file(server_data* server, server_interface ft) {
+  ft(server, NULL, NULL);
+}
+*/

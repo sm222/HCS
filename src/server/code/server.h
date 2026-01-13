@@ -12,6 +12,7 @@
 
 # define MAX_PASS_LEN 255
 # define MAX_USER     200
+# define IP_BUFF_LEN  30
 
 typedef struct {
   t_user*      users;
@@ -26,7 +27,7 @@ typedef struct {
 
 typedef struct server_data {
   int          port;
-  char         password[(MAX_PASS_LEN + 1)];
+  char         password[(IP_BUFF_LEN + 1)];
   //
   fd_set       rs, ws, as;
   unsigned int nbUser;

@@ -10,10 +10,16 @@ typedef struct {
   int fd;
 } t_file;
 
+typedef enum {
+  invalid_file = -1,
+  user_file = 0,
+} t_file_type;
+
 t_file* open_file(const char* name);
 void    draw_file(t_file* file);
 void    free_file(t_file** file);
+int     get_file_type(const t_file* file);
 
-
+typedef  int(*server_interface)(server_data*, t_user*, void*);
 
 #endif

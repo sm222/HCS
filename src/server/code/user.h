@@ -26,7 +26,7 @@ typedef enum userStatus {
 } userStatus;
 
 typedef struct t_user {
-  unsigned int id;
+  unsigned int id; //unique server wise ?
   int          fd;
   int32_t      status;
   char         name[(NAME_LEN + 1)];

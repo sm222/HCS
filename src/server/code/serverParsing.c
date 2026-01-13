@@ -22,7 +22,7 @@ static void server_say_hello(server_data* server, t_user* u) {
   struct tm* timeinfo = localtime(&rawtime);
   const char* s = asctime(timeinfo);
   const size_t s_len = strlen(s);
-  server_say(1001, server, u, "00:hello %.*s HCS %s\n", (int)s_len - 1, s, VERTION);
+  server_say(301, server, u, "00:hello %.*s HCS %s\n", (int)s_len - 1, s, VERTION);
 }
 
 static bool ask_password(server_data* server, t_user* u) {

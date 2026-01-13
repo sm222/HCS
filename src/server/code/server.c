@@ -2,6 +2,7 @@
 # include "server.h"
 # include <stdlib.h>
 # include <arpa/inet.h>
+# include <fcntl.h>
 # include "serverParsing.h"
 
 
@@ -82,6 +83,9 @@ int init_server(t_setting* data, server_data* server, size_t nbArgs) {
     perror("socket");
     return 1;
   }
+  //int flags = fcntl(server->socketFd, F_GETFL, 0);
+  //flags = flags & ~O_NONBLOCK;
+  //fcntl(server->socketFd, F_SETFL, flags);
   server->servaddr.sin_family = AF_INET;
   server->servaddr.sin_addr.s_addr = INADDR_ANY;
   if (try_bind(data, server))
@@ -166,7 +170,7 @@ static int add_user(int fd, server_data* server) {
   memcpy(server->userData.users[i].ip, addres, addres_len + 1);
   server->userData.regist++;
   printf("ip: %s\nindex: %u\n", addres, i);
-  send_str_all(server, "new user\n", "server:");
+  //send_str_all(server, "new user\n", "server:");
   return 0;
 }
 
@@ -179,10 +183,11 @@ static int whipe_user(server_data* server) {
 }
 
 static int remove_user(server_data* server) {
-  FD_CLR(server->userData.users[server->userData.read].fd, &server->as);
   server->nbUser--;
-  close(server->userData.users[server->userData.read].fd);
-  server->userData.users[server->userData.read].fd = 0;
+  t_user* u = server->userData.users + server->userData.read;
+  FD_CLR(u->fd, &server->as);
+  close(u->fd);
+  u->fd = 0;
   rm_user_message(server, server->userData.read);
   return 0;
 }
