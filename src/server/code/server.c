@@ -291,10 +291,10 @@ int network_loop(server_data* server) {
   while (!kill) {
     server->rs = server->ws = server->as;
     //move_user(server);
-    usleep(100000);
-    test_user_list(server);
+    //usleep(100000);
+    //test_user_list(server);
     const int selectResult = select(server->maxFd + 1, &server->rs, &server->ws, NULL, NULL);
-    printf("select result %d\n", selectResult);
+    //printf("select result %d\n", selectResult);
     if (selectResult < 0) {
       perror("select");
       return 1;
@@ -303,7 +303,7 @@ int network_loop(server_data* server) {
       if(!FD_ISSET(server->userData.users[server->userData.read].fd, &server->rs)) {
         continue ;
       }
-      printf("not skip [%zu]\n", server->userData.read);
+      //printf("not skip [%zu]\n", server->userData.read);
       if (server->userData.users[server->userData.read].fd == server->socketFd) {
         socklen_t addr_len = sizeof(server->servaddr);
         const int clId = accept(server->socketFd, (struct sockaddr *)&server->servaddr, &addr_len);
