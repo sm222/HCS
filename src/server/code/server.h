@@ -4,6 +4,7 @@
 # include <netdb.h>
 # include <sys/socket.h>
 # include <netinet/in.h>
+// # include <poll.h>
 //
 # include "channel.h"
 # include "user.h"
@@ -16,7 +17,7 @@
 
 typedef struct {
   t_user*      users;
-  size_t       size;
+  //size_t       size; // array size not use rn
   size_t       regist;
   size_t       read;
 } user_data;
@@ -29,10 +30,12 @@ typedef struct server_data {
   int          port;
   char         password[(IP_BUFF_LEN + 1)];
   //
-  fd_set       rs, ws, as;
-  unsigned int nbUser;
-  int          socketFd;
-  unsigned int ids;
+  //struct pollfd fds[MAX_USER]; // stay on select for now
+  fd_set        rs, ws, as;
+  unsigned int  nbUser;
+  int           socketFd;
+  int           maxFd;
+  unsigned int  ids;
   struct sockaddr_in servaddr;
   //
   channel      def;

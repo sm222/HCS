@@ -79,6 +79,7 @@ int init_server(t_setting* data, server_data* server, size_t nbArgs) {
     printf("def port: %d\n", DEF_PORT);
   }
   server->socketFd = socket(AF_INET, SOCK_STREAM, 0);
+  server->maxFd = server->socketFd;
   if (server->socketFd < 0) {
     perror("socket");
     return 1;
@@ -100,7 +101,7 @@ int init_server(t_setting* data, server_data* server, size_t nbArgs) {
 }
 
 int setup_server_user(t_setting* data, server_data* server) {
-  server->ids = 0;
+  server->ids = 2;
   server->nbUser = server->socketFd;
   server->userData.users = calloc(MAX_USER + 1, sizeof(*server->userData.users));
   if (!server->userData.users) {
@@ -111,7 +112,7 @@ int setup_server_user(t_setting* data, server_data* server) {
   FD_ZERO(&server->as);
   FD_SET(server->socketFd, &server->as);
   server->userData.users[0] = (t_user){
-    .id = 0,
+    .id = 1,
     .fd = server->socketFd,
     .status = 0,
     .name = "self",
@@ -141,6 +142,8 @@ int server_clean_up(t_setting* data, server_data* server) {
 }
 
 static int add_user(int fd, server_data* server) {
+  // if it works i don't know why
+  server->maxFd = fd > server->maxFd ? fd : server->maxFd; 
   FD_SET(fd, &server->as);
   server->ids++;
   server->nbUser++;
@@ -168,11 +171,12 @@ static int add_user(int fd, server_data* server) {
     .setting = NULL
   };
   memcpy(server->userData.users[i].ip, addres, addres_len + 1);
-  server->userData.regist++;
+  //server->userData.regist++; // not true 
   printf("ip: %s\nindex: %u\n", addres, i);
   //send_str_all(server, "new user\n", "server:");
   return 0;
 }
+
 
 static int whipe_user(server_data* server) {
   if (!read_byte(server->userData.users[server->userData.read].status, valid)) {
@@ -182,12 +186,13 @@ static int whipe_user(server_data* server) {
   return 0;
 }
 
+
 static int remove_user(server_data* server) {
   server->nbUser--;
   t_user* u = server->userData.users + server->userData.read;
   FD_CLR(u->fd, &server->as);
   close(u->fd);
-  u->fd = 0;
+  //u->fd = 0;
   rm_user_message(server, server->userData.read);
   return 0;
 }
@@ -247,11 +252,50 @@ static int manage_user(server_data* server) {
   return dispatch(server);
 }
 
+static void print_user(t_user* u) {
+  printf("fd[%d] id[%u] status[%d]\n", u->fd, u->id, u->status);
+}
+
+static void test_user_list(server_data* server) {
+  for (size_t i = 0; i < 6; i++) {
+    print_user(server->userData.users + i);
+  }
+  printf("-------------------------\n");
+}
+
+
+int move_user(server_data* server) {
+  size_t freeSpot = 0;
+  for (size_t i = 1; i < 5; i++) {
+    if (server->userData.users[i].id == 0 && freeSpot == 0) {
+      freeSpot = i;
+    }
+    test_user_list(server);
+    printf("free spot = %zu [%zu]\n", freeSpot, i);
+    usleep(80000);
+    if (server->userData.users[i].id > 0 && i > freeSpot && freeSpot != 0) {
+      printf("mem move [%zu][%zu]\n", freeSpot, i);
+      memcpy(server->userData.users + freeSpot, server->userData.users + i, sizeof(t_user));
+      bzero(server->userData.users + i, sizeof(t_user));
+      //i = freeSpot;
+      //freeSpot = 0;
+    }
+  }
+  printf("\n");
+  return 0;
+}
+
+
 int network_loop(server_data* server) {
   int kill = 0;
   while (!kill) {
     server->rs = server->ws = server->as;
-    if (select(server->nbUser + 1, &server->rs, &server->ws, NULL, NULL) < 0) {
+    //move_user(server);
+    usleep(100000);
+    test_user_list(server);
+    const int selectResult = select(server->maxFd + 1, &server->rs, &server->ws, NULL, NULL);
+    printf("select result %d\n", selectResult);
+    if (selectResult < 0) {
       perror("select");
       return 1;
     }
@@ -259,11 +303,13 @@ int network_loop(server_data* server) {
       if(!FD_ISSET(server->userData.users[server->userData.read].fd, &server->rs)) {
         continue ;
       }
+      printf("not skip [%zu]\n", server->userData.read);
       if (server->userData.users[server->userData.read].fd == server->socketFd) {
         socklen_t addr_len = sizeof(server->servaddr);
         const int clId = accept(server->socketFd, (struct sockaddr *)&server->servaddr, &addr_len);
-        if (clId > 0) {
+        if (clId >= 0) {
           add_user(clId, server);
+          break;
         }
         else {
           perror("accept");
