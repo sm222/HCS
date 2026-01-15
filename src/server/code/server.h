@@ -13,6 +13,7 @@
 
 # define MAX_PASS_LEN 255
 # define MAX_USER     200
+# define MAX_PROFILE  (MAX_USER / 2)
 # define IP_BUFF_LEN  30
 
 typedef struct {
@@ -40,12 +41,12 @@ typedef struct server_data {
   //
   channel      def;
   user_data    userData;
-
+  t_user       profile[MAX_PROFILE];
 } server_data;
 
 
 int init_server(t_setting* data, server_data* server, size_t nbArgs);
-int setup_server_user(t_setting* data, server_data* server);
+int setup_server_user(server_data* server);
 int server_clean_up(t_setting* data, server_data* server);
 
 int network_loop(server_data* server);

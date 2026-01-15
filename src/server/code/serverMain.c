@@ -25,7 +25,7 @@ int star_main(void* ptr) {
   }
   server_data server;
   error += init_server(data, &server, nbArgs);
-  error += setup_server_user(data, &server);
+  error += setup_server_user(&server);
   if (error == 0)
     error = network_loop(&server);
   server_clean_up(data, &server);

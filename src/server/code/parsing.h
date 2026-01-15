@@ -4,7 +4,7 @@
 # include "../../dup/dataType.h"
 
 # ifndef PROG_NAME
-#  define PROG_NAME "base"
+#  define PROG_NAME "HCS"
 # endif
 
 

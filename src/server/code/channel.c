@@ -10,7 +10,6 @@ static int edit_msg(t_msg_block* block, t_msg msg) {
   if (block->i == BLOCK_SIZE) {
     return 1;
   }
-  printf("->%d\n", block->i);
   block->msgs[block->i] = (t_msg){
     .timeDif = get_time_dif(block->first),
     .data = msg.data,

@@ -9,9 +9,9 @@
 #  define BUFFER_SIZE 100
 
 typedef struct s_info {
-  char  *tmp;
-  char  *tmp2;
-  char  readtmp[BUFFER_SIZE + 1];
+  char*  tmp;
+  char*  tmp2;
+  char   readtmp[BUFFER_SIZE + 1];
   int    rv;
   size_t  cut;
 }  t_info;
@@ -21,7 +21,7 @@ static void* ft_sfree(void* ptr) {
   return NULL;
 }
 
-static char  *ft_strjoin(char *sfree, char *s2) {
+static char  *ft_strjoin(char* sfree, char* s2) {
   size_t s1_i = strlen(sfree ? sfree : "");
   size_t s2_i = strlen(s2 ? s2 : "");
   char* new = calloc(s1_i + s2_i + 1, sizeof(char));
@@ -39,8 +39,8 @@ static char  *ft_strjoin(char *sfree, char *s2) {
   return (ft_sfree(sfree), new);
 }
 
-static char  *ft_tiny_split(char *s, size_t *cut) {
-  char  *new = NULL;
+static char  *ft_tiny_split(char* s, size_t* cut) {
+  char* new = NULL;
   size_t  i = 0;
 
   while (s[i])
@@ -55,7 +55,7 @@ static char  *ft_tiny_split(char *s, size_t *cut) {
   return (new);
 }
 
-static char  ft_find(char *s) {
+static char  ft_find(char* s) {
   size_t  i = 0;
 
   while (s && s[i]) {
@@ -66,7 +66,7 @@ static char  ft_find(char *s) {
   return ('0');
 }
 
-static char  *safe_return(char **book, t_info *t_val) {
+static char* safe_return(char**  book, t_info* t_val) {
   t_val->tmp = ft_tiny_split(*book, &t_val->cut);
   if (!t_val->tmp) {
     *book = ft_sfree(*book);
@@ -78,8 +78,8 @@ static char  *safe_return(char **book, t_info *t_val) {
   return (t_val->tmp);
 }
 
-static char  *get_next_line(int fd) {
-  static char  *book = NULL;
+static char* get_next_line(int fd) {
+  static char* book = NULL;
   t_info    t_val;
 
   if (fd < 0 || BUFFER_SIZE <= 0 || fd > 255)
@@ -107,24 +107,60 @@ static char  *get_next_line(int fd) {
 
 # include "fileProssess.h"
 
+void print_file_error(int32_t file, const char* fileName) {
+  put_str(fileName, STDERR_FILENO, false);
+  if (file == 7) {
+    put_str_nl(": no problem", STDERR_FILENO);
+    return ;
+  }
+  if (!read_byte(file, f_is_ok)) {
+    put_str_nl(": file do not existe", STDERR_FILENO);
+    return ;
+  }
+  if (!read_byte(file, f_is_read)) {
+    put_str_nl(":not allowed to read", STDERR_FILENO);
+    return ;
+  }
+  if (!read_byte(file, f_is_write)) {
+    put_str_nl(":not allowed to write", STDERR_FILENO);
+    return ;
+  }
+}
+
+int32_t test_file_perms(const char* fileName) {
+  int32_t file = 0;
+  if (access(fileName, F_OK) == 0) {
+    set_byte(&file, f_is_ok, true);
+  }
+  if (access(fileName, R_OK) != 0 && read_byte(file, f_is_ok)) {
+    return file;
+  }
+  else {
+    set_byte(&file, f_is_read, true);
+  }
+  if (access(fileName, W_OK) == 0) {
+    set_byte(&file, f_is_write, true);
+  }
+  return file;
+}
 
 static int read_file(t_file* file) {
   const size_t startSize = 10;
   file->rawFile = calloc(startSize, sizeof(char*));
-  size_t line = 0;
+  size_t numberLine = 0;
   size_t rawFileSize = startSize;
-  char* l = "line";
-  while (l) {
-    l = get_next_line(file->fd);
-    file->rawFile[line] = l;
-    file->fileSize += strlen(l ? l : "");
-    line++;
-    if (line > rawFileSize / 2) {
+  char* line = "line";
+  while (line) {
+    line = get_next_line(file->fd);
+    file->rawFile[numberLine] = line;
+    file->fileSize += strlen(line ? line : "");
+    numberLine++;
+    if (numberLine > rawFileSize / 2) {
       rawFileSize *= 2;
       file->rawFile = realloc(file->rawFile, sizeof(char*) * rawFileSize);
     }
   }
-  file->arraySize = line;
+  file->arraySize = numberLine;
   return 0;
 }
 
@@ -145,7 +181,7 @@ t_file* open_file(const char* name) {
   return file;
 }
 
-void draw_file(t_file* file) {
+void print_file(t_file* file) {
   if (!file) {
     return ;
   }
@@ -154,7 +190,7 @@ void draw_file(t_file* file) {
   }
 }
 
-void free_file(t_file** file) {
+void close_file(t_file** file) {
   if (!file || !(*file)) {
     return ;
   }
@@ -177,6 +213,13 @@ int get_file_type(const t_file* file) {
       return user_file;
   }
   return invalid_file;
+}
+
+char* read_line(const t_file* file, size_t line) {
+  if (!file || line > file->arraySize) {
+    return NULL;
+  }
+  return file->rawFile[line];
 }
 
 /*

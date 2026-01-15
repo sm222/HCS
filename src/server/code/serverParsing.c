@@ -72,12 +72,44 @@ static int got_password(server_data* server, t_user* user) {
   return !ask_password(server, user);
 }
 
+#include "fileProssess.h"
+
+static void print_user(t_user* u) {
+  printf("fd[%d] id[%u] status[%d]\n", u->fd, u->id, u->status);
+}
+
+static void test_user_list(server_data* server) {
+  for (size_t i = 0; i < 10; i++) {
+    print_user(server->userData.users + i);
+  }
+  printf("-------------------------\n");
+}
+
 int dispatch(server_data* server) {
   t_user* ref = server->userData.users + server->userData.read;
   if (strcmp("exit", ref->msg) == 0) { //! only for dev
     free(ref->msg);
     ref->msg = NULL;
     return 1;
+  }
+  if (strcmp("list", ref->msg) == 0) { //! only for dev
+    test_user_list(server);
+    free(ref->msg);
+    ref->msg = NULL;
+    return 0;
+  }
+  if (strncmp("GET / HTTP/1.1\r\n", ref->msg, strlen("GET / HTTP/1.1\r\n")) == 0) {
+    t_file* f = open_file("doc/test.html");
+    send_to_user(server, ref, "HTTP/1.1 200 OK\r\n");
+    send_to_user(server, ref, "Content-Type: text/html\r\n");
+    send_to_user(server, ref, "Connection: close\r\n\r\n");
+    for (size_t i = 0; i < f->arraySize - 1; i++) {
+      send_to_user(server, ref, read_line(f, i));
+      send_to_user(server, ref, "\r\n");
+    }
+    close_file(&f);
+    set_byte(&ref->status, force_dc, true);
+    return 0;
   }
   test_cmd(server, ref);
   if (*ref->msg == 0) {

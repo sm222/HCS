@@ -4,54 +4,14 @@
 # include <arpa/inet.h>
 # include <fcntl.h>
 # include "serverParsing.h"
+# include "serverUtiles.h"
 
 
-
-int send_to_user(server_data* server, t_user* u, const char* msg) {
-  if (!u || !server) {
-    return 2;
-  }
-  send(u->fd, msg, strlen(msg), 0);
-  return 0;
-}
-
-int send_str(server_data* server, size_t i, const char* msg) {
-  if (i >= MAX_USER)
-    return 1;
-  t_user* u = server->userData.users + i;
-  send_to_user(server, u, msg);
-  return 0;
-}
 
 static int server_closing(server_data* server) {
   send_str_all(server, "01:exit server closing goodbye!\n", NULL);
   return 0;
 }
-
-int send_str_all(server_data* server, const char* msg, const char* from) {
-  for (size_t i  = 1; i < MAX_USER; i++) {
-    t_user* u = server->userData.users + i;
-    if (u->fd) {
-      if (from) {
-        send_str(server, i, from);
-      }
-      send_str(server, i, msg);
-    }
-  }
-  return 0;
-}
-
-/*
-int send_to_channel(server_data* server, channel* chan, t_user* from, const char* msg) {
-  if (!server) {
-    return 2;
-  }
-  if (!chan || !from) {
-    return 3;
-  }
-  
-}
-*/
 
 static int try_bind(t_setting* data, server_data* server) {
   server->servaddr.sin_port = htons(server->port);
@@ -100,7 +60,7 @@ int init_server(t_setting* data, server_data* server, size_t nbArgs) {
   return 0;
 }
 
-int setup_server_user(t_setting* data, server_data* server) {
+int setup_server_user(server_data* server) {
   server->ids = 2;
   server->nbUser = server->socketFd;
   server->userData.users = calloc(MAX_USER + 1, sizeof(*server->userData.users));
@@ -108,7 +68,6 @@ int setup_server_user(t_setting* data, server_data* server) {
     perror("calloc");
     return 1;
   }
-  (void)data; // safety
   FD_ZERO(&server->as);
   FD_SET(server->socketFd, &server->as);
   server->userData.users[0] = (t_user){
@@ -143,7 +102,7 @@ int server_clean_up(t_setting* data, server_data* server) {
 
 static int add_user(int fd, server_data* server) {
   // if it works i don't know why
-  server->maxFd = fd > server->maxFd ? fd : server->maxFd; 
+  server->maxFd = fd > server->maxFd ? fd : server->maxFd;
   FD_SET(fd, &server->as);
   server->ids++;
   server->nbUser++;
@@ -178,10 +137,10 @@ static int add_user(int fd, server_data* server) {
 }
 
 
-static int whipe_user(server_data* server) {
+static int wipe_user(server_data* server) {
   if (!read_byte(server->userData.users[server->userData.read].status, valid)) {
     bzero(&server->userData.users[server->userData.read], sizeof(t_user));
-    printf("user %zu was whipe\n", server->userData.read);
+    printf("user %zu was wipe\n", server->userData.read);
   }
   return 0;
 }
@@ -197,26 +156,7 @@ static int remove_user(server_data* server) {
   return 0;
 }
 
-static char* join_free(char* s1, const char* s2) {
-  char* res = NULL;
-  size_t s1L = 0, s2L = 0;
-  //
-  s1L = strlen(s1);
-  s2L = strlen(s2);
-  res = calloc(s1L + s2L + 1, sizeof(char));
-  if (!res) {
-    free(s1);
-    return NULL;
-  }
-  while (s2L--) {
-    res[s1L + s2L] = s2[s2L];
-  }
-  while (s1L--) {
-    res[s1L] = s1[s1L];
-  }
-  free(s1);
-  return res;
-}
+
 
 static int edit_user_msg(server_data* server, const char* b) {
   t_user* u = server->userData.users + server->userData.read;
@@ -241,7 +181,7 @@ static int manage_user(server_data* server) {
   const ssize_t readByte = recv(server->userData.users[server->userData.read].fd, buff , READ_BUFF_SIZE, 0);
   if (readByte <= 0) {
     remove_user(server);
-    whipe_user(server);
+    wipe_user(server);
     printf("dc\n");
     return 0;
   }
@@ -252,58 +192,26 @@ static int manage_user(server_data* server) {
   return dispatch(server);
 }
 
-static void print_user(t_user* u) {
-  printf("fd[%d] id[%u] status[%d]\n", u->fd, u->id, u->status);
-}
-
-static void test_user_list(server_data* server) {
-  for (size_t i = 0; i < 6; i++) {
-    print_user(server->userData.users + i);
-  }
-  printf("-------------------------\n");
-}
-
-
-int move_user(server_data* server) {
-  size_t freeSpot = 0;
-  for (size_t i = 1; i < 5; i++) {
-    if (server->userData.users[i].id == 0 && freeSpot == 0) {
-      freeSpot = i;
-    }
-    test_user_list(server);
-    printf("free spot = %zu [%zu]\n", freeSpot, i);
-    usleep(80000);
-    if (server->userData.users[i].id > 0 && i > freeSpot && freeSpot != 0) {
-      printf("mem move [%zu][%zu]\n", freeSpot, i);
-      memcpy(server->userData.users + freeSpot, server->userData.users + i, sizeof(t_user));
-      bzero(server->userData.users + i, sizeof(t_user));
-      //i = freeSpot;
-      //freeSpot = 0;
-    }
-  }
-  printf("\n");
-  return 0;
-}
 
 
 int network_loop(server_data* server) {
   int kill = 0;
   while (!kill) {
     server->rs = server->ws = server->as;
-    //move_user(server);
-    //usleep(100000);
-    //test_user_list(server);
     const int selectResult = select(server->maxFd + 1, &server->rs, &server->ws, NULL, NULL);
-    //printf("select result %d\n", selectResult);
     if (selectResult < 0) {
       perror("select");
       return 1;
     }
     for (server->userData.read = 0; server->userData.read < MAX_USER; server->userData.read++) {
+      if (read_byte((server->userData.users + server->userData.read)->status, force_dc)) {
+        printf("remove is ass\n");
+        remove_user(server);
+        wipe_user(server);
+      }
       if(!FD_ISSET(server->userData.users[server->userData.read].fd, &server->rs)) {
         continue ;
       }
-      //printf("not skip [%zu]\n", server->userData.read);
       if (server->userData.users[server->userData.read].fd == server->socketFd) {
         socklen_t addr_len = sizeof(server->servaddr);
         const int clId = accept(server->socketFd, (struct sockaddr *)&server->servaddr, &addr_len);
