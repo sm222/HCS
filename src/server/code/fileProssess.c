@@ -21,7 +21,7 @@ static void* ft_sfree(void* ptr) {
   return NULL;
 }
 
-static char  *ft_strjoin(char* sfree, char* s2) {
+static char* ft_strjoin(char* sfree, char* s2) {
   size_t s1_i = strlen(sfree ? sfree : "");
   size_t s2_i = strlen(s2 ? s2 : "");
   char* new = calloc(s1_i + s2_i + 1, sizeof(char));
@@ -39,7 +39,7 @@ static char  *ft_strjoin(char* sfree, char* s2) {
   return (ft_sfree(sfree), new);
 }
 
-static char  *ft_tiny_split(char* s, size_t* cut) {
+static char* ft_tiny_split(char* s, size_t* cut) {
   char* new = NULL;
   size_t  i = 0;
 
@@ -55,7 +55,7 @@ static char  *ft_tiny_split(char* s, size_t* cut) {
   return (new);
 }
 
-static char  ft_find(char* s) {
+static char  ft_find_nl(char* s) {
   size_t  i = 0;
 
   while (s && s[i]) {
@@ -89,7 +89,7 @@ static char* get_next_line(int fd) {
   if (!book)
     return (NULL);
   t_val.rv = 0;
-  while (ft_find(book) == '0') {
+  while (ft_find_nl(book) == '0') {
     bzero(t_val.readtmp, BUFFER_SIZE + 1);
     t_val.rv = read(fd, t_val.readtmp, BUFFER_SIZE);
     if (t_val.rv <= 0)

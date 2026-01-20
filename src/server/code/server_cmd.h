@@ -11,6 +11,7 @@ static const char* const server_cmd[] = {
   "02:login"   ,
   "03:logout"  ,
   "04:makeUser",
+  "05:"
 };
 
 #endif //SERVER_CMD_H
